@@ -1,0 +1,78 @@
+<template>
+  <div id="app">
+    <button @click="click_btn">hook</button>
+    <br>
+    <button @click="position_word">position</button>
+    <br>
+    <button @click="replace_word">replace</button>
+    <br>
+    <br>
+    <!-- <qm-highlight :highLightInfo="contentHighlightData" formatType="book" :errorWordsArrs="errorWordsArrs"></qm-highlight> -->
+    <!-- <qmContrastHighlight :highLightInfo="contentHighlightData" formatType="book" :errorWordsArrs="errorWordsArrs"></qmContrastHighlight> -->
+    <!-- <div contenteditable="true"></div> -->
+    <PtHighlightPlus v-model="contentHighlightData.content" :highLightInfo="contentHighlightData" height="" formatType="book" :errorWordsArrs="errorWordsArrs" backgroundColor="#F7F4ED" ref="ref-hl"></PtHighlightPlus>
+  </div>
+</template>
+
+<script>
+import PtHighlightPlus from '../components/pt-highlight-plus/index.vue';
+// import QmHighlight from '../components/qm-highlight/index.vue';
+// import qmContrastHighlight from '../components/qm-contrast-highlight/index';
+
+export default {
+    name: 'App',
+    components: {
+        PtHighlightPlus
+        // QmHighlight
+        // qmContrastHighlight
+    },
+    data() {
+        return {
+            contentHighlightData: {},
+            content: ''
+        };
+    },
+    created() {
+        this.contentHighlightData.content = `<p>测试数据测试数据加测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据测试数据</p>`;
+
+        this.contentHighlightData.sensitiveWords = '测试'; // 敏感词
+        this.contentHighlightData.dangerWords = ''; // 高危词
+        this.contentHighlightData.banWords = ''; // 禁词
+        this.errorWordsArrs = [
+            {
+                'index_begin': '0',
+                'index_end': '20',
+                'begin_pos': '11',
+                'end_pos': '12',
+                'source_begin_pos': '11',
+                'source_end_pos': '12',
+                'ori_frag': '加',
+                'correct_frag': '减',
+                'score': '1'
+            }
+        ];
+    },
+    methods: {
+        click_btn() {
+            console.log('this.contentHighlightData.content', this.contentHighlightData.content);
+        },
+        position_word() {
+            this.$refs['ref-hl'].position_correct_word_by_outside(this.errorWordsArrs[0]);
+        },
+        replace_word() {
+            this.$refs['ref-hl'].replace_correct_word_by_outside(this.errorWordsArrs[0]);
+        }
+    }
+};
+</script>
+
+<style>
+#app {
+  font-family: Avenir, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+  /* margin-top: 60px; */
+}
+</style>

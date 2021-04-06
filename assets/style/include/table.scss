@@ -1,0 +1,39 @@
+.qm-table{
+    width: 100%;
+    th,td{
+        height: 40px;
+        padding: 5px;
+        border: 1px solid $border-color-base;
+        @include hack(box-sizing, border-box);
+        overflow: hidden;
+        a{
+            color: #333;
+            &:hover{
+                color: $link-color;
+            }
+        }
+    }
+    th{
+        background: $table-th-bg;
+        text-align: right;
+        font-weight: bold;
+    }
+    .red{
+        color: $important-color;
+    }
+    .green{
+        color: #46A546;
+    }
+    &.odd{
+        tr:nth-child(odd){
+            background: $table-even-bg;
+        }
+    }
+    &[size=small]{
+        th,td{
+            line-height: 18px;
+            font-size: 14px;
+            padding: 3px 5px;
+        }
+    }
+}

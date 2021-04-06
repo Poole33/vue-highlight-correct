@@ -1,0 +1,60 @@
+.qm-tag{
+    display: inline-block;
+    @include hack(border-radius,4px);
+    line-height: 16px;
+    padding: 0 5px;
+    color: #fff;
+    font-size: 12px;
+    &.red{
+        background: red;
+        color: #fff;
+    }
+    &.light-red{
+        background: #ff644c;
+        color: #fff;
+    }
+    &.yellow{
+        background:yellow;
+        color: black;
+    }
+    &.light-yellow{
+        background: #dcff0d;
+        color: black;
+    }
+    &.orange{
+        background: #f89406;
+        color: #fff;
+    }
+    &.blue{
+        background: #549dff;
+        color: #fff;
+    }
+    &.green{
+        background: #46a546;
+        color: #fff;
+    }
+    &.light-green{
+        background: #05f505;
+        color: black;
+    }
+    &.gray{
+        background:#bbb;
+        color: #fff;
+    }
+    &-list{
+        display: inline-block;
+        margin-left: 10px;
+        .qm-tag{
+            margin-right: 5px;
+            &:last-child{
+                margin-right: 0;
+            }
+        }
+        &.right{
+            float: right;
+        }
+        &.ml0{
+            margin-left: 0;
+        }
+    }
+}

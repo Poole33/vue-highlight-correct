@@ -1,0 +1,189 @@
+$qmWidthArr: (60 70 80 90 100 110 120 130 140 150 160 170 180 190 200 210 220 230);
+
+.qm-form{
+    &.filter{
+        position: relative;
+        margin-bottom: $space;
+        .ant-form-inline{
+            @include flexbox();
+            height: 32px;
+            overflow: hidden;
+            width: 100%;
+            .ant-form-filter-list{
+                display: block;
+            }
+            .ant-form-item-btn{
+                display: block;
+                width: 100%;
+                @include flexboxChild();
+                white-space: nowrap;
+                // float: right;
+            }
+        }
+        &:hover,&.hover{
+            z-index: 100;
+            padding-top: 32px;
+            .ant-form-inline{
+                // background: #fff;
+                zoom: 1;
+                background: -webkit-linear-gradient(rgba(252,252,252,1) 80%, rgba(252,252,252,0) 100%);
+                background: -moz-linear-gradient(rgba(252,252,252,1) 80%, rgba(252,252,252,0) 100%);
+                background: -o-linear-gradient(rgba(252,252,252,1) 80%, rgba(252,252,252,0) 100%);
+                background: -ms-linear-gradient(rgba(252,252,252,1) 80%, rgba(252,252,252,0) 100%);
+                background: linear-gradient(rgba(252,252,252,1) 80%, rgba(252,252,252,0) 100%);
+                padding-bottom: $space;
+                height: auto;
+                display: block;
+                overflow: visible;
+                position: absolute;
+                top: 0;
+                left: 0;
+                .ant-form-filter-list{
+                    display: inline;
+                }
+                .ant-form-item-btn{
+                    white-space: normal;
+                    width: auto;
+                    display: inline-block;
+                    float: right;
+                }
+            }
+        }
+    }
+    &.flex{
+        @include flexbox();
+        .qm-form-item{
+            width: 100%;
+            display: block;
+            @include flexboxChild();
+        }
+    }
+    &-item{
+        display: block;
+    }
+    .s-tips{
+        display: inline-block;
+        &.red{
+            color: $important-color;
+        }
+        &.block{
+            display: block;
+        }
+    }
+    .txt{
+        @include flexbox();
+        padding-top: 4px;
+        span{
+            &.s-tips{
+                display: block;
+                padding-left: $space / 2;
+                vertical-align: top;
+                line-height: 32px;
+            }
+        }
+    }
+    .ant-form-item{
+        @include flexbox();
+        margin-bottom: $space;
+        // &:last-child{
+        //     margin-bottom: 0;
+        // }
+    }
+    .ant-form-inline{
+        .ant-form-item{
+            display: inline-block;
+            margin-bottom: $space;
+            margin-right: $space * 2;
+            &:last-child{
+                // margin-bottom: 0;
+                margin-right: 0;
+            }
+        }
+    }
+
+    .ant-form-item-label{
+        display: block;
+        width: 150px;
+        text-align: right;
+        padding-right: $space / 2;
+        line-height: 32px;
+        label{
+            display: block;
+            width: 100%;
+        }
+    }
+    .ant-form-item-children{
+        .ant-btn{
+            margin-right: $space;
+            margin-left: 0;
+            &:last-child{
+                margin-right: 0;
+            }
+        }
+    }
+    .ant-form-item-btn{
+        padding-left: 150px;
+        
+    }
+    .ant-form-item-control{
+        line-height: 32px;
+    }
+    .ant-form-item-control-wrapper{
+        display: block;
+        @include flexboxChild();
+    }
+    &.auto{
+        .ant-form-item-label{
+            width: auto;
+        }
+        .ant-form-item-btn{
+            padding-left: 0;
+        }
+    }
+    &.t-120{
+        .ant-form-item-label{
+            width: 120px;
+        }
+        .ant-form-item-btn{
+            padding-left: 120px;
+        }
+    }
+    &.t-180{
+        .ant-form-item-label{
+            width: 180px;
+        }
+        .ant-form-item-btn{
+            padding-left: 180px;
+        }
+    }
+    &.t-200{
+        .ant-form-item-label{
+            width: 200px;
+        }
+        .ant-form-item-btn{
+            padding-left: 200px;
+        }
+    }
+    .ant-checkbox-wrapper{
+        margin-right: $space;
+        margin-left: 0;
+        & + .ant-checkbox-wrapper{
+            margin-left: 0;
+        }
+        &:last-child{
+            margin-right: 0;
+        }
+    }
+    &-checkbox-list{
+        .ant-checkbox-wrapper{
+            width: 120px;
+        }
+        @for $i from 1 through length($qmWidthArr){
+            &.w-#{nth($qmWidthArr, $i)}{
+                .ant-checkbox-wrapper{
+                    width: #{nth($qmWidthArr, $i)}px;
+                }
+            }
+        }
+    }
+}

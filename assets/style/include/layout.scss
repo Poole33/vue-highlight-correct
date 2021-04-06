@@ -1,0 +1,146 @@
+html,
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: $body-bg;
+    overflow: hidden;
+}
+
+body{
+    font-size: $font-size-base;
+    .mt{
+        margin-top: $space;
+    }
+    .mr{
+        margin-right: $space;
+    }
+    .ml{
+        margin-left: $space;
+    }
+    .mb{
+        margin-bottom: $space;
+    }
+    .mt2{
+        margin-top: $space * 2;
+    }
+    .mr2{
+        margin-right: $space * 2;
+    }
+    .ml2{
+        margin-left: $space * 2;
+    }
+    .mb2{
+        margin-bottom: $space * 2;
+    }
+    .important{
+        color: $important-color;
+    }
+    .important-second{
+        color: $important-second-color;
+    }
+    .bold{
+        font-weight: bold;
+    }
+    .red{
+        color: red;
+    }
+    .green{
+        color: green;
+    }
+}
+
+#app {
+    font-family: Arial,\5FAE\8F6F\96C5\9ED1, \u601d\u6e90\u5b8b\u4f53, PingFangSC-Regular, \5b8b\4f53;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-align: left;
+    width: 100%;
+    height: 100%;
+}
+
+.wrapper,.wrapper-special{
+    @include flexbox();
+    height: calc(100vh - 48px);
+    overflow: hidden;
+    word-break: break-word;
+    .main{
+        display: block;
+        @include flexboxChild();
+        width: 100%;
+        padding: $space * 2;
+        // padding-left: $space + 8;
+        height: 100%;
+        box-sizing: border-box;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        background: $body-bg;
+        // &::-webkit-scrollbar { 
+        //     -webkit-appearance: none;
+        // }
+        .page-loading{
+            height: 100%;
+            .ant-spin{
+                position: fixed;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%,-50%);
+            }
+        }
+        &::-webkit-scrollbar:vertical { 
+            width: 16px;
+        }
+        &::-webkit-scrollbar-thumb { 
+            border-radius: 8px; 
+            border: 2px solid #F1F1F1; 
+            background-color: #C1C1C1;
+        }
+        .row{
+            background: #fff;
+            // padding: $space;
+            margin-top: $space;
+            &:first-child{
+                margin-top: 0;
+            }
+            &.padding{
+                padding: $space;
+            }
+            &.flex{
+                @include flexbox();
+                background: none;
+                padding: 0;
+                margin: 0;
+            }
+            .col-a{
+                @include flexboxChild();
+                display: block;
+                width: 100%;
+                background: #fff;
+                padding: $space;
+            }
+            .col-b{
+                display: block;
+                margin-left: $space;
+                width: 300px;
+                padding: $space;
+                background: #fff;
+            }
+        }
+    }
+}
+
+.wrapper-special{
+    height: 100%;
+    .main{
+        padding: 0;
+        background: none;
+    }
+}
+
+.qm-position-sticky{
+    position: sticky;
+    position: -webkit-sticky;
+    top: 0;
+    left: 0;
+}

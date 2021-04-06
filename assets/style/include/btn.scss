@@ -1,0 +1,23 @@
+.qm-btn-list{
+    text-align: center;
+    span{
+        display: inline-block;
+        margin-left: $space;
+        &:first-child{
+            margin-left: 0;
+        }
+        &.s-tips{
+            display: inline-block;
+            font-size: 14px;
+        }
+        &.red{
+            color: $important-color;
+        }
+        &.left{
+            float: left;
+        }
+        &.right{
+            float: right;
+        }
+    }
+}
