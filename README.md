@@ -9,7 +9,7 @@
 ![效果图](https://tva1.sinaimg.cn/large/008eGmZEgy1gpa2eonuw1g30zq06ab2d.gif)
 
 
-#代码演示
+# 代码演示
 ```html
 <pt-highlight-plus
 ref="ref-hl"
