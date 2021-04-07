@@ -62,6 +62,7 @@ export default {
 # API
 | 参数  | 说明  | 类型  | 默认值  | 版本  |
 | ------------ | ------------ | ------------ | ------------ | ------------ |
+|  v-model  | 编辑框内容  | String  | 无 | 1.0  |
 |  errorWordsArrs  | 错别字标识信息，用来标记出错误的文字  | Object  |{}  | 1.0  |
 |  highLightInfo  | 组件所需数据，其中content为后端返回的数据，不需单独特殊处理，组件中统一进行处理  | Object  | 无  | 1.0  |
 |  formatType  | 高亮文本的类型，根据不同的类型，格式形式略有不同(book\txt\title)   | String  | book  | 1.0  |
