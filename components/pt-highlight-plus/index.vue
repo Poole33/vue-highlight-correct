@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import { replace_nbsp, product_highLight_html, del_html_tag_include_p, replace_html_to_text, replace_text_to_p } from './tools/highlight';
+import { replace_nbsp, product_highLight_html, del_html_tag_include_p, replace_html_to_text, replace_text_to_p, del_all_html_tag } from './tools/highlight';
 import { add_error_words_underline } from './tools/correct';
 
 export default {
@@ -58,19 +58,31 @@ export default {
             return this.totalWords > this.maxWords ? 'out-max-words' : '';
         }
     },
-    watch: {},
+    watch: {
+        content: {
+            deep: true,
+            handler(newval, oldval) {
+                // console.log('watch');
+                // 数据 只初始化第一次
+                if (!oldval) {
+                    this.init_data();
+                    // this.click_u_tag();
+                }
+            }
+        }
+    },
     created() {
-        this.init_data();
-        this.check_max_word(this.content, this.maxWords);
+        // this.init_data();
+        // this.check_max_word(this.content, this.maxWords);
     },
     mounted() {
-        this.click_u_tag();
+        // this.click_u_tag();
     },
     methods: {
-        init_data() { // 初始化数据
-            let _content = this.content;
+        init_data(content = this.content, errArr = this.errorWordsArrs) { // 初始化数据
+            let _content = content;
             // 标记错别字
-            _content = add_error_words_underline(this.errorWordsArrs, _content);
+            _content = add_error_words_underline(errArr, _content);
             this.inputHTML = _content;
 
             // 不含p标签的文本加上p标签
@@ -78,22 +90,26 @@ export default {
             _content = product_highLight_html(_content, this.highLightInfo, this.isSingleWordValidate, this.isSingleNumberValidate);
 
             this.editContent = _content;
+
+            // 初始化时，判断下字数是否超出最大字数
+            this.check_max_word(this.content, this.maxWords);
+            // 初始化错别字绑定点击事件
+            this.click_u_tag();
         },
-        blur_box() {
+        blur_box() { // 光标移出 重新检测敏感词
             this.editContent = product_highLight_html(this.inputHTML, this.highLightInfo, this.isSingleWordValidate, this.isSingleNumberValidate);
 
-            this.$nextTick(() => {
-                this.click_u_tag();
-            });
+            this.click_u_tag();
         },
         input_content(event) { // 输入文本时
             this.check_max_word(event.target.innerHTML, this.maxWords);
             this.format_back_html(event.target.innerHTML);
         },
-        check_max_word(html, maxWords) {
+        check_max_word(html, maxWords) { // 检测字数是否超出最大字数
             let _inputContent = replace_nbsp(html);
-            _inputContent = del_html_tag_include_p(_inputContent);
-            const _totalWords = _inputContent.length;
+            _inputContent = del_all_html_tag(_inputContent);
+            // 最终的字数不包含空格与换行符
+            const _totalWords = _inputContent.replace(/\s/gi, '').length;
             this.totalWords = _totalWords;
             if (_totalWords < maxWords) {
                 this.$emit('totalWords', _totalWords);
@@ -104,10 +120,10 @@ export default {
             }
         },
         format_back_html(html){ // 格式化数据，返回
-            // 修改后的数据重新赋值
-            this.inputHTML = html;
             // 兼容chrome浏览器输入第二个空格为&nbsp;
             let _html = replace_nbsp(html);
+            // 修改后的数据重新赋值
+            this.inputHTML = _html;
             if (this.isReturnContentIncludePtag) _html = del_html_tag_include_p(_html);
             else _html = replace_html_to_text(_html);
             this.$emit('input', _html);
@@ -117,46 +133,77 @@ export default {
             _tooltip.style.display = 'none';
         },
         click_u_tag() { // 点击u标签的一些处理
-            document.getElementsByTagName('u').forEach(uTag => {
-                uTag.onclick = (event) => {
-                    event.stopPropagation();
-                    const _correctWord = uTag.getAttribute('data-correct');
-
-                    const _tooltip = document.getElementById('js-correct-tooltip');
-                    _tooltip.style.display = 'block';
-                    _tooltip.style.top = event.pageY + 15 + 'px';
-                    _tooltip.style.left = event.pageX - 24 + 'px';
-                    const _tooltipCorrectWord = document.getElementById('js-correct-word');
-                    _tooltipCorrectWord.innerText = _correctWord || 'empty';
-                    _tooltipCorrectWord.onclick = () => {
-                        uTag.outerText = _correctWord;
-                        _tooltip.style.display = 'none';
-                        const _contentDom = document.getElementById('js-pt-contenteditable');
-                        // console.log('_contentDom', _contentDom.innerHTML);
-                        this.format_back_html(_contentDom.innerHTML);
+            this.$nextTick(() => {
+                document.getElementsByTagName('u').forEach(uTag => {
+                    uTag.onclick = (event) => {
+                        event.stopPropagation();
+                        if (event.target.localName == 'mark') this.handle_u(event.path[1]);
+                        else this.handle_u(event.target);
                     };
-                };
+                });
             });
         },
-        position_correct_word_by_outside(errobj) { // 定位到错字
-            const _idNum = (+errobj.index_begin) + (+errobj.begin_pos);
+        handle_u(eventT) { // 处理u标签的点击执行内容
+            const _tooltip = document.getElementById('js-correct-tooltip');
+            if (eventT.classList.contains('overlook')) return;
+            const _correctWord = eventT.dataset.correct;
+
+            _tooltip.style.display = 'block';
+            _tooltip.style.top = eventT.offsetTop + 22 + 'px';
+            _tooltip.style.left = eventT.offsetLeft - 15 + 'px';
+
+            this.click_tooltip(eventT.id, _correctWord);
+        },
+        click_tooltip(uTagId, correctWord) { // 点击错词弹框
+            const _tooltip = document.getElementById('js-correct-tooltip');
+            const _tooltipCorrectWord = document.getElementById('js-correct-word');
+            _tooltipCorrectWord.innerText = correctWord || 'empty';
+
+            _tooltipCorrectWord.onclick = () => {
+                document.getElementById(uTagId).outerText = correctWord;
+                _tooltip.style.display = 'none';
+                this.$emit('clickCorrectTooltip', this.errorWordsArrs.find(item => item.id == uTagId));
+                const _contentDom = document.getElementById('js-qm-contenteditable'); // 最外面的框
+                this.format_back_html(_contentDom.innerHTML); // 触发给父组件实时数据
+            };
+        },
+        position_correct_word_by_outside(errObj) { // 定位到错字
+            const _idNum = (+errObj.index_begin) + (+errObj.begin_pos);
             const _id = `correct-${_idNum}`;
             const _curDom = document.getElementById(_id);
             if (!_curDom) return;
             _curDom.scrollIntoView(false);
-            _curDom.classList.add('pt-correct-edit-highlight');
+            _curDom.classList.add('qm-correct-edit-highlight');
             setTimeout(() => {
-                _curDom.classList.remove('pt-correct-edit-highlight');
+                _curDom.classList.remove('qm-correct-edit-highlight');
             }, 1000);
         },
-        replace_correct_word_by_outside(errobj) { // 替换错字
-            const _idNum = (+errobj.index_begin) + (+errobj.begin_pos);
+        replace_correct_words_by_outside(errArr) { // 替换错字
+            errArr.forEach((errObj) => {
+                const _idNum = (+errObj.index_begin) + (+errObj.begin_pos);
+                const _id = `correct-${_idNum}`;
+                const _curDom = document.getElementById(_id);
+                if (!_curDom) return;
+                _curDom.outerHTML = errObj.correct_frag;
+            });
+            const _contentDom = document.getElementById('js-qm-contenteditable');
+            this.format_back_html(_contentDom.innerHTML);
+        },
+        overlook_correct_words_by_outside(errArr) { // 忽略错别字
+            errArr.forEach(errObj => {
+                const _idNum = (+errObj.index_begin) + (+errObj.begin_pos);
+                const _id = `correct-${_idNum}`;
+                const _curDom = document.getElementById(_id);
+                if (!_curDom) return;
+                _curDom.classList.add('overlook');
+            });
+        },
+        withdraw_overlook_by_outside(errObj) { // 撤销忽略
+            const _idNum = (+errObj.index_begin) + (+errObj.begin_pos);
             const _id = `correct-${_idNum}`;
             const _curDom = document.getElementById(_id);
             if (!_curDom) return;
-            _curDom.outerHTML = errobj.correct_frag;
-            const _contentDom = document.getElementById('js-pt-contenteditable');
-            this.format_back_html(_contentDom.innerHTML);
+            _curDom.classList.remove('overlook');
         }
     }
 };

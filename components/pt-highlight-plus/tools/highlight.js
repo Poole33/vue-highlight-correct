@@ -37,9 +37,10 @@ export function add_bg_color_by_words(words, html, className) {
         _words.forEach(n => {
             if (isNaN(n)){
                 n = format_first_initial_include_special_symbol(n);
-                if (n.search(/^[A-Za-z]+$/) != -1) {
-                    html = format_english_word(n, html, className);
-                } else html = html.replace(new RegExp(n, 'gi'), `<mark class=${className}>$&</mark>`);
+                html = format_word(n, html, className);
+                // if (n.search(/^[A-Za-z]+$/) != -1) {
+                //     html = format_english_word(n, html, className);
+                // } else html = html.replace(new RegExp(n, 'gi'), `<mark class=${className}>$&</mark>`);
             }
         });
     }
@@ -47,7 +48,7 @@ export function add_bg_color_by_words(words, html, className) {
 }
 
 // 给英文添加高亮
-function format_english_word(word, html, className) {
+function format_word(word, html, className) {
     html = html.replace(new RegExp(`${word}(?!([a-z]|[0-9]| |=|"|[^x00-xff])*>)`, 'gi'), `<mark class=${className}>$&</mark>`);
     return html;
 }
