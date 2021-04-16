@@ -1,20 +1,20 @@
 <template>
-    <div>
+    <div class="pt-highlight-box">
         <div
-        id="js-pt-contenteditable"
-        :class="['pt-contenteditable', contentType, `font-size-${fontSize}`, isOutMaxWords]"
+        :id="uid"
+        :class="['pt-contenteditable', contentType, `font-size-${fontSize}`, isOutMaxWords, inputClassName]"
         :style="{'height': height || 'auto', 'background': backgroundColor }"
         :contenteditable="!isDisabled"
+        :key="componentKey"
         v-html="editContent"
         @input="input_content"
-        @blur="blur_box"
-        @click="click_box">
+        @blur="blur_box">
         </div>
 
-        <div class="pt-correct-tooltip" id="js-correct-tooltip">
+        <div class="pt-correct-tooltip" :id="tooltipUid">
             <span class="pt-correct-tooltip-diamond"></span>
             <div class="pt-correct-tooltip-content">
-                <span class="pt-correct-word" id="js-correct-word"></span>
+                <span class="pt-correct-word" :id="correctWordUid"></span>
             </div>
         </div>
     </div>
@@ -39,7 +39,8 @@ export default {
         isConentIncludePtag: { type: Boolean, default: true }, // 传递的展示content是否包含html标签
         isReturnContentIncludePtag: { type: Boolean, default: true }, // 返回的content是否需要包含p标签格式
         backgroundColor: { type: String, default: '' }, // 护眼色
-        errorWordsArrs: { type: Array, default: () => [] } // 错别字
+        errorWordsArrs: { type: Array, default: () => [] }, // 错别字
+        inputClassName: { type: String, default: '' }
     },
     model: {
         prop: 'content',
@@ -49,8 +50,11 @@ export default {
     data() {
         return {
             editContent: '',
-            inputHTML: '', // 每次输入后的innerHTML
-            totalWords: 0
+            totalWords: 0,
+            componentKey: 1,
+            uid: `js-pt-contenteditable-${Math.random()}`, // 保证父组件id唯一，解决同页面多次使用组件问题
+            tooltipUid: `js-correct-tooltip-${Math.random()}`, // 保证父组件id唯一，解决同页面多次使用组件问题
+            correctWordUid: `js-correct-word-${Math.random()}`
         };
     },
     computed: {
@@ -61,49 +65,53 @@ export default {
     watch: {
         content: {
             deep: true,
+            immediate: true,
             handler(newval, oldval) {
-                // console.log('watch');
                 // 数据 只初始化第一次
                 if (!oldval) {
                     this.init_data();
-                    // this.click_u_tag();
                 }
             }
         }
     },
-    created() {
-        // this.init_data();
-        // this.check_max_word(this.content, this.maxWords);
-    },
+    created() {},
     mounted() {
-        // this.click_u_tag();
+        document.addEventListener('click', this.hidden_tooltip);
+    },
+    beforeDestroy() {
+        document.removeEventListener('click', this.hidden_tooltip);
     },
     methods: {
         init_data(content = this.content, errArr = this.errorWordsArrs) { // 初始化数据
             let _content = content;
             // 标记错别字
             _content = add_error_words_underline(errArr, _content);
-            this.inputHTML = _content;
 
             // 不含p标签的文本加上p标签
             if (!this.isConentIncludePtag) _content = replace_text_to_p(_content);
+
+            // 添加高亮
             _content = product_highLight_html(_content, this.highLightInfo, this.isSingleWordValidate, this.isSingleNumberValidate);
 
             this.editContent = _content;
+            this.componentKey += 1; // 强制更新组件，保证忽略后重新检测能更新视图
 
             // 初始化时，判断下字数是否超出最大字数
             this.check_max_word(this.content, this.maxWords);
             // 初始化错别字绑定点击事件
             this.click_u_tag();
         },
-        blur_box() { // 光标移出 重新检测敏感词
-            this.editContent = product_highLight_html(this.inputHTML, this.highLightInfo, this.isSingleWordValidate, this.isSingleNumberValidate);
+        blur_box(event) { // 光标移出 重新检测敏感词
+            const _html = replace_nbsp(event.target.innerHTML);
+            this.editContent = product_highLight_html(_html, this.highLightInfo, this.isSingleWordValidate, this.isSingleNumberValidate);
+
+            this.componentKey += 1; // 强制更新组件，保证忽略后重新检测能更新视图
 
             this.click_u_tag();
+            this.format_back_html(this.editContent);
         },
         input_content(event) { // 输入文本时
             this.check_max_word(event.target.innerHTML, this.maxWords);
-            this.format_back_html(event.target.innerHTML);
         },
         check_max_word(html, maxWords) { // 检测字数是否超出最大字数
             let _inputContent = replace_nbsp(html);
@@ -123,47 +131,52 @@ export default {
             // 兼容chrome浏览器输入第二个空格为&nbsp;
             let _html = replace_nbsp(html);
             // 修改后的数据重新赋值
-            this.inputHTML = _html;
             if (this.isReturnContentIncludePtag) _html = del_html_tag_include_p(_html);
             else _html = replace_html_to_text(_html);
             this.$emit('input', _html);
         },
-        click_box() { // 点击编辑区域时
-            const _tooltip = document.getElementById('js-correct-tooltip');
+        hidden_tooltip() { // 隐藏tooltip
+            const _tooltip = document.getElementById(this.tooltipUid);
             _tooltip.style.display = 'none';
+            document.getElementById(this.tooltipUid).onclick = (event) => {
+                event.stopPropagation();
+            };
         },
         click_u_tag() { // 点击u标签的一些处理
             this.$nextTick(() => {
                 document.getElementsByTagName('u').forEach(uTag => {
                     uTag.onclick = (event) => {
                         event.stopPropagation();
-                        if (event.target.localName == 'mark') this.handle_u(event.path[1]);
-                        else this.handle_u(event.target);
+                        if (event.target.localName == 'mark') this.show_tooltip(event.path[1]);
+                        else this.show_tooltip(event.target);
                     };
                 });
             });
         },
-        handle_u(eventT) { // 处理u标签的点击执行内容
-            const _tooltip = document.getElementById('js-correct-tooltip');
+        show_tooltip(eventT) { // 处理u标签的点击执行内容
+            const _tooltip = document.getElementById(this.tooltipUid);
             if (eventT.classList.contains('overlook')) return;
-            const _correctWord = eventT.dataset.correct;
 
             _tooltip.style.display = 'block';
             _tooltip.style.top = eventT.offsetTop + 22 + 'px';
             _tooltip.style.left = eventT.offsetLeft - 15 + 'px';
 
+            const _correctWord = eventT.dataset.correct;
+            const _tooltipCorrectWord = document.getElementById(this.correctWordUid);
+            _tooltipCorrectWord.innerText = _correctWord || 'empty';
+
+            // 点击tooltip替换错字功能
             this.click_tooltip(eventT.id, _correctWord);
         },
         click_tooltip(uTagId, correctWord) { // 点击错词弹框
-            const _tooltip = document.getElementById('js-correct-tooltip');
-            const _tooltipCorrectWord = document.getElementById('js-correct-word');
-            _tooltipCorrectWord.innerText = correctWord || 'empty';
+            const _tooltip = document.getElementById(this.tooltipUid);
+            const _tooltipCorrectWord = document.getElementById(this.correctWordUid);
 
             _tooltipCorrectWord.onclick = () => {
                 document.getElementById(uTagId).outerText = correctWord;
                 _tooltip.style.display = 'none';
                 this.$emit('clickCorrectTooltip', this.errorWordsArrs.find(item => item.id == uTagId));
-                const _contentDom = document.getElementById('js-qm-contenteditable'); // 最外面的框
+                const _contentDom = document.getElementById(this.uid); // 最外面的框
                 this.format_back_html(_contentDom.innerHTML); // 触发给父组件实时数据
             };
         },
@@ -173,9 +186,9 @@ export default {
             const _curDom = document.getElementById(_id);
             if (!_curDom) return;
             _curDom.scrollIntoView(false);
-            _curDom.classList.add('qm-correct-edit-highlight');
+            _curDom.classList.add('pt-correct-edit-highlight');
             setTimeout(() => {
-                _curDom.classList.remove('qm-correct-edit-highlight');
+                _curDom.classList.remove('pt-correct-edit-highlight');
             }, 1000);
         },
         replace_correct_words_by_outside(errArr) { // 替换错字
@@ -186,7 +199,7 @@ export default {
                 if (!_curDom) return;
                 _curDom.outerHTML = errObj.correct_frag;
             });
-            const _contentDom = document.getElementById('js-qm-contenteditable');
+            const _contentDom = document.getElementById(this.uid);
             this.format_back_html(_contentDom.innerHTML);
         },
         overlook_correct_words_by_outside(errArr) { // 忽略错别字
@@ -211,6 +224,11 @@ export default {
 
 <style lang="scss" scoped>
 $fontSizeArr: (10 11 12 13 14 15 16 17 18 19 20 21 22);
+
+.pt-highlight-box {
+    position: relative;
+}
+
 .pt-contenteditable {
     border: 1px solid #DCDFE6;
     border-radius: 5px;
@@ -252,6 +270,9 @@ $fontSizeArr: (10 11 12 13 14 15 16 17 18 19 20 21 22);
 /deep/u { // 错别字下划线
     text-decoration: none;
     border-bottom: 3px #b70000 solid;
+    &.overlook {
+        border-bottom: none;
+    }
     &:active {
         background: #ffdccc;
     }

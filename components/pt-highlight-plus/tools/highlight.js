@@ -2,10 +2,17 @@
 export function replace_nbsp(html) {
     return html.replace(/&nbsp;/gi, ' ');
 }
+
+// 格式化中文之间的空格为空，英文之间的空格为单个半角空格
+export function replace_sapce(html) {
+    return html.replace(/(\W)(\s+)(\W)/gim, '$1$3').replace(/(\w)(\s+)(\w)/gim, '$1 $3');
+}
+
 // 生成 页面高亮需要的数据  即 div里的内容
 export function product_highLight_html(editContent, highLightData, isSingleWordValidate = false, isSingleNumberValidate = false) {
     let _html = editContent;
     _html = _html.replace(/<\/?((mark|\/mark)).*?>/gi, '');
+    _html = replace_sapce(_html); // 格式化空格
 
     // 当开启单个英文字母和数字校验时，才进行单个英文字母和数字的校验
     if (isSingleWordValidate){
@@ -16,14 +23,14 @@ export function product_highLight_html(editContent, highLightData, isSingleWordV
         _html = _html.replace(/[0-9]/g, '<mark class="danger">$&</mark>');
     }
 
-    // 敏感词高亮
-    _html = add_bg_color_by_words(highLightData.sensitiveWords, _html, 'sensitive');
+    // 禁词高亮
+    _html = add_bg_color_by_words(highLightData.banWords, _html, 'ban');
 
     // 高危词高亮
     _html = add_bg_color_by_words(highLightData.dangerWords, _html, 'danger');
 
-    // 禁词高亮
-    _html = add_bg_color_by_words(highLightData.banWords, _html, 'ban');
+    // 敏感词高亮
+    _html = add_bg_color_by_words(highLightData.sensitiveWords, _html, 'sensitive');
 
     return _html;
 }
@@ -49,7 +56,12 @@ export function add_bg_color_by_words(words, html, className) {
 
 // 给英文添加高亮
 function format_word(word, html, className) {
-    html = html.replace(new RegExp(`${word}(?!([a-z]|[0-9]| |=|"|[^x00-xff])*>)`, 'gi'), `<mark class=${className}>$&</mark>`);
+    const _regex = new RegExp(`(?<=>)${word}(?=</)`, 'gi');
+    const _isHaveHighlight = html.search(_regex);
+
+    if (_isHaveHighlight == -1) {
+        html = html.replace(new RegExp(`${word}(?!([a-z]|[0-9]| |=|-|:|;|"|[^x00-xff])*>)`, 'gi'), `<mark class=${className}>$&</mark>`);
+    }
     return html;
 }
 
